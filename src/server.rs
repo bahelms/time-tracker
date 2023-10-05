@@ -1,24 +1,50 @@
-// use tokio::io::{AsyncBufReadExt, AsyncWriteExt, BufReader};
-use tokio::net::TcpListener;
-// use tokio::sync::broadcast;
+use tokio::io::{AsyncBufReadExt, BufReader};
+use tokio::net::{TcpListener, TcpStream};
 
 #[tokio::main]
-pub async fn start(address: String, port: String) {
-    let location = format!("{}:{}", address, port);
+pub async fn start(location: String) {
     let listener = TcpListener::bind(&location)
         .await
         .expect("Failed to bind to addr");
 
-    println!("Time Tracker -- listening on {}", location);
+    println!("Time Tracker is running on {}", location);
 
-    // let (tx, _) = broadcast::channel(32);
     loop {
-        let (_stream, addr) = listener.accept().await.unwrap();
-        println!("Connection accepted: {}", addr);
-        // let publisher = tx.clone();
-        // let consumer = tx.subscribe();
-        // tokio::spawn(async move {
-        //     handle_stream(stream, publisher, consumer, addr).await;
-        // });
+        let (stream, _addr) = listener.accept().await.unwrap();
+        tokio::spawn(async move {
+            handle_stream(stream).await;
+        });
     }
+}
+
+async fn handle_stream(stream: TcpStream) {
+    let mut reader = BufReader::new(stream);
+    let mut buffer = String::new();
+    reader
+        .read_line(&mut buffer)
+        .await
+        .expect("Reading message failed");
+    execute_command(buffer);
+}
+
+fn execute_command(cmd: String) {
+    match cmd.split(':').collect::<Vec<&str>>()[..] {
+        ["START", session_id] => {
+            start_session(session_id);
+        }
+        _ => println!("Unknown command {}", cmd),
+    }
+}
+
+fn start_session(id: &str) {
+    println!("Starting session for {}", id);
+
+    // let time = Utc::now().to_rfc3339();
+    // let parsed = chrono::DateTime::parse_from_rfc3339("2023-10-05T20:48:07.921875828+00:00");
+    // match parsed {
+    //     Ok(expr) => {
+    //         println!("Tracking {} - {} - parsed {}", id, time, expr);
+    //     }
+    //     Err(e) => println!("Error {}", e),
+    // }
 }

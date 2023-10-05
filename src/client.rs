@@ -1,17 +1,15 @@
-use chrono::Utc;
+use tokio::io::AsyncWriteExt;
+use tokio::net::TcpStream;
 
-pub fn start_session(session_id: String) {
-    let time = Utc::now().to_rfc3339();
+#[tokio::main]
+pub async fn start_session(session_id: String, server: String) {
+    let mut stream = TcpStream::connect(server)
+        .await
+        .expect("Failed to connect to server");
+
+    let command = format!("START:{}", session_id);
+    stream
+        .write_all(command.as_bytes())
+        .await
+        .expect("Failed to write to server");
 }
-
-pub fn stop_tracking(session_id: String) {
-    println!("Tracking for \"{}\" stopped", session_id);
-}
-
-// let parsed = chrono::DateTime::parse_from_rfc3339("2023-10-05T20:48:07.921875828+00:00");
-// match parsed {
-//     Ok(expr) => {
-//         println!("Tracking {} - {} - parsed {}", id, time, expr);
-//     }
-//     Err(e) => println!("Error {}", e),
-// }

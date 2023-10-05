@@ -9,17 +9,17 @@ fn main() {
         return println!("Error: Specify a command");
     }
 
+    let server_location = "127.0.0.1:5888".to_string();
+
     match args[1].as_str() {
         "server" => {
-            let address = "127.0.0.1".to_string();
-            let port = "5888".to_string();
-            server::start(address, port);
+            server::start(server_location);
         }
         "start" => {
             if args.len() < 3 {
                 return println!("Error: Specify the ID of what you are tracking");
             }
-            client::start_session(args[2].clone())
+            client::start_session(args[2].clone(), server_location);
         }
         "stop" => {
             println!("Stop - TODO");
