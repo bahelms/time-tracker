@@ -21,9 +21,7 @@ fn main() {
             }
             client::start_session(args[2].clone(), server_location);
         }
-        "stop" => {
-            println!("Stop - TODO");
-        }
+        "stop" => client::stop_session(server_location),
         "status" => {
             if args.len() < 3 {
                 return println!("Error: Specify the session ID for more information");
