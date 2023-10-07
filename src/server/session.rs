@@ -3,37 +3,39 @@ use std::fs::{self, File, OpenOptions};
 use std::io::{Read, Write};
 use std::path::Path;
 
-const CURRENT_SESSION_FILE: &str = "./current_session.txt";
+const CONFIG_DIRECTORY: &str = ".config/time_tracker";
+const SESSION_HISTORY_FILENAME: &str = "history.txt";
+const CURRENT_SESSION_FILENAME: &str = "current_session.txt";
 
-pub struct Session {
-    // current_session_file: String,
-}
+pub struct Session;
 
 impl Session {
     pub fn start(id: &str) {
-        if Path::new(CURRENT_SESSION_FILE).exists() {
+        let current_session_file = format!("{}/{}", init_config_dir(), CURRENT_SESSION_FILENAME);
+        if Path::new(&current_session_file).exists() {
             return println!("Can't start new session. A current session is still running.");
         }
 
         println!("Starting session for {}", id);
         let session = format!("{}|{}", id, Utc::now().to_rfc3339());
-        store_current_session(session);
+        store_current_session(session, current_session_file);
     }
 
     pub fn stop() {
-        if !Path::new(CURRENT_SESSION_FILE).exists() {
+        let current_session_file = format!("{}/{}", init_config_dir(), CURRENT_SESSION_FILENAME);
+        if !Path::new(&current_session_file).exists() {
             return println!("There is no current session running.");
         }
 
         println!("Stopping current session");
-        let contents = read_file_contents(CURRENT_SESSION_FILE);
+        let contents = read_file_contents(&current_session_file);
         let closed_session = format!("{}|{}\n", contents, Utc::now().to_rfc3339());
-        persist_session_to_history(closed_session);
+        persist_session_to_history(closed_session, current_session_file);
     }
 }
 
-fn store_current_session(session: String) {
-    let mut file = File::create(CURRENT_SESSION_FILE).expect("Error creating file");
+fn store_current_session(session: String, current_session_file: String) {
+    let mut file = File::create(current_session_file).expect("Error creating file");
     file.write_all(session.as_bytes())
         .expect("Error writing session to file");
 }
@@ -46,18 +48,15 @@ fn read_file_contents(pathname: &str) -> String {
     contents
 }
 
-fn persist_session_to_history(session: String) {
+fn persist_session_to_history(session: String, current_session_file: String) {
     let mut file = open_history_file();
     file.write_all(session.as_bytes())
         .expect("Error saving closed session");
-    fs::remove_file(CURRENT_SESSION_FILE).expect("Error removing current session file");
+    fs::remove_file(current_session_file).expect("Error removing current session file");
 }
 
 fn open_history_file() -> File {
-    let history_file = format!(
-        "{}/.config/time_tracker_history.txt",
-        std::env::var("HOME").expect("Error getting HOME env var")
-    );
+    let history_file = format!("{}/{}", init_config_dir(), SESSION_HISTORY_FILENAME);
 
     if Path::new(&history_file).exists() {
         OpenOptions::new()
@@ -67,6 +66,18 @@ fn open_history_file() -> File {
     } else {
         File::create(Path::new(&history_file)).expect("Error creating file")
     }
+}
+
+fn init_config_dir() -> String {
+    let config_dir = format!(
+        "{}/{}",
+        std::env::var("HOME").expect("Error getting HOME env var"),
+        CONFIG_DIRECTORY,
+    );
+    if !Path::new(&config_dir).exists() {
+        fs::create_dir_all(&config_dir).expect("Error creating config directory");
+    }
+    config_dir
 }
 
 // let current_session_id = contents.split('|').collect::<Vec<&str>>()[0];
