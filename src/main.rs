@@ -21,12 +21,14 @@ fn main() {
             }
             client::start_session(args[2].clone(), server_location);
         }
-        "stop" => client::stop_session(server_location),
+        "stop" => {
+            client::stop_session(server_location);
+        }
         "status" => {
-            if args.len() < 3 {
-                return println!("Error: Specify the session ID for more information");
-            }
-            println!("Status - TODO");
+            // if args.len() < 3 {
+            //     return println!("Error: Specify the session ID for more information");
+            // }
+            client::status(server_location);
         }
         cmd => println!("Error: Unknown command '{}'", cmd),
     }

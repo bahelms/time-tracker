@@ -32,6 +32,10 @@ impl Session {
         let closed_session = format!("{}|{}\n", contents, Utc::now().to_rfc3339());
         persist_session_to_history(closed_session, current_session_file);
     }
+
+    pub fn status() -> String {
+        "Status test".to_string()
+    }
 }
 
 fn store_current_session(session: String, current_session_file: String) {

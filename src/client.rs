@@ -1,27 +1,35 @@
-use tokio::io::AsyncWriteExt;
-use tokio::net::TcpStream;
+use std::io::{BufRead, Write};
+use std::net::TcpStream;
 
-#[tokio::main]
-pub async fn start_session(session_id: String, server: String) {
-    let mut stream = connect(server).await;
-    let command = format!("START:{}", session_id);
+pub fn start_session(session_id: String, server: String) {
+    let mut stream = connect(server);
+    let command = format!("START:{}\n", session_id);
+    send_command(&mut stream, command);
+}
+
+pub fn stop_session(server: String) {
+    let mut stream = connect(server);
+    send_command(&mut stream, "STOP\n".to_string());
+}
+
+pub fn status(server: String) {
+    let mut stream = connect(server);
+    send_command(&mut stream, "STATUS\n".to_string());
+
+    let mut reader = std::io::BufReader::new(stream);
+    let mut response = String::new();
+    reader
+        .read_line(&mut response)
+        .expect("Reading message failed");
+    println!("{}", response);
+}
+
+fn connect(server: String) -> TcpStream {
+    TcpStream::connect(server).expect("Failed to connect to server")
+}
+
+fn send_command(stream: &mut TcpStream, command: String) {
     stream
         .write_all(command.as_bytes())
-        .await
         .expect("Failed to write to server");
-}
-
-#[tokio::main]
-pub async fn stop_session(server: String) {
-    let mut stream = connect(server).await;
-    stream
-        .write_all("STOP".as_bytes())
-        .await
-        .expect("Failed to write to server");
-}
-
-async fn connect(server: String) -> TcpStream {
-    TcpStream::connect(server)
-        .await
-        .expect("Failed to connect to server")
 }
