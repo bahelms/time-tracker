@@ -37,8 +37,7 @@ fn execute_command(cmd: &str) -> Option<String> {
     match cmd.split(':').collect::<Vec<&str>>()[..] {
         ["START", session_id] => Session::start(session_id),
         ["STOP"] => Session::stop(),
-        ["STATUS"] => return Some(Session::status()),
-        _ => println!("Unknown command {}", cmd),
+        ["STATUS"] => Session::status(),
+        _ => Some(format!("Unknown command {}", cmd)),
     }
-    None
 }

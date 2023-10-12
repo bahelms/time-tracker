@@ -42,3 +42,7 @@ Example:
 gios,2023-10-04T20:49:40.273800872+00:00,2023-10-04T20:49:40.273800872+00:00
 ```
 This file acts as a log with new sessions being appended. The last record will be the previous session.
+
+### TODO
+- Stop current session upon server shutdown
+- Add status formatting

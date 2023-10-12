@@ -10,31 +10,35 @@ const CURRENT_SESSION_FILENAME: &str = "current_session.txt";
 pub struct Session;
 
 impl Session {
-    pub fn start(id: &str) {
+    pub fn start(id: &str) -> Option<String> {
         let current_session_file = format!("{}/{}", init_config_dir(), CURRENT_SESSION_FILENAME);
         if Path::new(&current_session_file).exists() {
-            return println!("Can't start new session. A current session is still running.");
+            return Some(
+                "Can't start new session. A current session is still running.".to_string(),
+            );
         }
 
         println!("Starting session for {}", id);
         let session = format!("{}|{}", id, Utc::now().to_rfc3339());
         store_current_session(session, current_session_file);
+        None
     }
 
-    pub fn stop() {
+    pub fn stop() -> Option<String> {
         let current_session_file = format!("{}/{}", init_config_dir(), CURRENT_SESSION_FILENAME);
         if !Path::new(&current_session_file).exists() {
-            return println!("There is no current session running.");
+            return Some("There is no current session running.".to_string());
         }
 
         println!("Stopping current session");
         let contents = read_file_contents(&current_session_file);
         let closed_session = format!("{}|{}\n", contents, Utc::now().to_rfc3339());
         persist_session_to_history(closed_session, current_session_file);
+        None
     }
 
-    pub fn status() -> String {
-        "Status test".to_string()
+    pub fn status() -> Option<String> {
+        Some("Status test".to_string())
     }
 }
 
