@@ -6,6 +6,14 @@ mod session;
 use session::Session;
 
 pub fn start(location: String) {
+    ctrlc::set_handler(move || {
+        println!();
+        Session::stop();
+        println!("Bye bye!");
+        std::process::exit(0);
+    })
+    .expect("Error setting ctrlc handler");
+
     let listener = TcpListener::bind(&location).expect("Failed to bind to addr");
 
     println!("Time Tracker is now awaiting your command!");
