@@ -43,6 +43,41 @@ gios,2023-10-04T20:49:40.273800872+00:00,2023-10-04T20:49:40.273800872+00:00
 ```
 This file acts as a log with new sessions being appended. The last record will be the previous session.
 
+### Status
+Without an id:
+```
+$ tt status
+
+Current session: GIOS
+Started: 2023-10-04 01:32:41 PM
+Duration: 1 hour, 16 minutes
+```
+
+With an id:
+```
+$ tt status aos
+
+AOS stats
+    - Number of sessions: 14
+    - Weekly average: 15.32 hours
+    - Total duration: 62 hours, 12 minutes
+```
+
+With --all:
+```
+$ tt status --all
+
+AOS stats
+    - Number of sessions: 14
+    - Weekly average: 15.32 hours
+    - Total duration: 62 hours, 12 minutes
+
+GIOS stats
+    - Number of sessions: 14
+    - Weekly average: 15.32 hours
+    - Total duration: 62 hours, 12 minutes
+```
+
 ### TODO
 - Add status formatting
 - Use Clap for CLI arg parsing
