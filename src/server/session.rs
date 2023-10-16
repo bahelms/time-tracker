@@ -11,8 +11,8 @@ pub struct Session;
 
 impl Session {
     pub fn start(id: &str) -> Option<String> {
-        let current_session_file = format!("{}/{}", init_config_dir(), CURRENT_SESSION_FILENAME);
-        if Path::new(&current_session_file).exists() {
+        let path = current_session_path();
+        if Path::new(&path).exists() {
             return Some(
                 "Can't start new session. A current session is still running.".to_string(),
             );
@@ -20,30 +20,48 @@ impl Session {
 
         println!("Starting session for {}", id);
         let session = format!("{}|{}", id, Utc::now().to_rfc3339());
-        store_current_session(session, current_session_file);
+        store_current_session(session, path);
         None
     }
 
     pub fn stop() -> Option<String> {
-        let current_session_file = format!("{}/{}", init_config_dir(), CURRENT_SESSION_FILENAME);
-        if !Path::new(&current_session_file).exists() {
+        let path = current_session_path();
+        if !Path::new(&path).exists() {
             return Some("There is no current session running.".to_string());
         }
 
         println!("Stopping current session");
-        let contents = read_file_contents(&current_session_file);
+        let contents = read_file_contents(&path);
         let closed_session = format!("{}|{}\n", contents, Utc::now().to_rfc3339());
-        persist_session_to_history(closed_session, current_session_file);
+        persist_session_to_history(closed_session, path);
         None
     }
 
     pub fn status() -> Option<String> {
-        Some("Status test".to_string())
+        let path = current_session_path();
+        if !Path::new(&path).exists() {
+            return Some("There is no current session running.".to_string());
+        }
+
+        let contents = read_file_contents(&path);
+        let contents: Vec<&str> = contents.split('|').collect();
+        let dt = chrono::DateTime::parse_from_rfc3339(contents[1])
+            .expect("Parsing timestamp failed")
+            .with_timezone(&chrono::Local);
+        Some(format!(
+            "Current session: {} - Started: {}",
+            contents[0],
+            dt.format("%Y-%m-%d %k:%M:%S %p")
+        ))
     }
 }
 
-fn store_current_session(session: String, current_session_file: String) {
-    let mut file = File::create(current_session_file).expect("Error creating file");
+fn current_session_path() -> String {
+    format!("{}/{}", init_config_dir(), CURRENT_SESSION_FILENAME)
+}
+
+fn store_current_session(session: String, path: String) {
+    let mut file = File::create(path).expect("Error creating file");
     file.write_all(session.as_bytes())
         .expect("Error writing session to file");
 }
@@ -56,11 +74,11 @@ fn read_file_contents(pathname: &str) -> String {
     contents
 }
 
-fn persist_session_to_history(session: String, current_session_file: String) {
+fn persist_session_to_history(session: String, path: String) {
     let mut file = open_history_file();
     file.write_all(session.as_bytes())
         .expect("Error saving closed session");
-    fs::remove_file(current_session_file).expect("Error removing current session file");
+    fs::remove_file(path).expect("Error removing current session file");
 }
 
 fn open_history_file() -> File {
