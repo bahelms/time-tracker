@@ -1,5 +1,6 @@
 use std::io::{BufRead, Write};
 use std::net::TcpStream;
+use std::str;
 
 pub fn start_session(session_id: String, server: String) {
     connect(server, |mut conn| {
@@ -41,9 +42,12 @@ fn send_command(stream: &mut TcpStream, command: String) {
 
 fn read_response(stream: TcpStream) {
     let mut reader = std::io::BufReader::new(stream);
-    let mut response = String::new();
+    let mut response = Vec::new();
     reader
-        .read_line(&mut response)
+        .read_until(0, &mut response)
         .expect("Reading message failed");
-    println!("{}", response);
+    println!(
+        "{}",
+        str::from_utf8(&response).expect("Error: failed to parse response")
+    );
 }

@@ -79,5 +79,12 @@ GIOS stats
 ```
 
 ### TODO
-- Add status formatting
+- Add status for specific ID
+- Add status for all
 - Use Clap for CLI arg parsing
+
+### Deploy
+```
+$ cargo build -r
+$ mv target/release/time_tracker ~/bin
+```

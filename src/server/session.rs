@@ -1,4 +1,4 @@
-use chrono::Utc;
+use chrono::{DateTime, Utc};
 use std::fs::{self, File, OpenOptions};
 use std::io::{Read, Write};
 use std::path::Path;
@@ -18,10 +18,9 @@ impl Session {
             );
         }
 
-        println!("Starting session for {}", id);
         let session = format!("{}|{}", id, Utc::now().to_rfc3339());
         store_current_session(session, path);
-        None
+        Some(format!("Starting session for {}", id))
     }
 
     pub fn stop() -> Option<String> {
@@ -30,11 +29,10 @@ impl Session {
             return Some("There is no current session running.".to_string());
         }
 
-        println!("Stopping current session");
         let contents = read_file_contents(&path);
         let closed_session = format!("{}|{}\n", contents, Utc::now().to_rfc3339());
         persist_session_to_history(closed_session, path);
-        None
+        Some("Stopping current session".to_string())
     }
 
     pub fn status() -> Option<String> {
@@ -45,13 +43,20 @@ impl Session {
 
         let contents = read_file_contents(&path);
         let contents: Vec<&str> = contents.split('|').collect();
-        let dt = chrono::DateTime::parse_from_rfc3339(contents[1])
+        let dt = DateTime::parse_from_rfc3339(contents[1])
             .expect("Parsing timestamp failed")
             .with_timezone(&chrono::Local);
+        let formatted_dt = dt.format("%Y-%m-%d %k:%M:%S %p");
+        let duration = chrono::Local::now() - dt;
+        let formatted_duration = format!(
+            "{} hours, {} minutes",
+            duration.num_hours(),
+            duration.num_minutes()
+        );
+
         Some(format!(
-            "Current session: {} - Started: {}",
-            contents[0],
-            dt.format("%Y-%m-%d %k:%M:%S %p")
+            "Current session: {}\nStarted: {}\nDuration: {}",
+            contents[0], formatted_dt, formatted_duration
         ))
     }
 }
