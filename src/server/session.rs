@@ -110,13 +110,3 @@ fn init_config_dir() -> String {
     }
     config_dir
 }
-
-// let current_session_id = contents.split('|').collect::<Vec<&str>>()[0];
-//
-// let parsed = chrono::DateTime::parse_from_rfc3339("2023-10-05T20:48:07.921875828+00:00");
-// match parsed {
-//     Ok(expr) => {
-//         println!("Tracking {} - {} - parsed {}", id, time, expr);
-//     }
-//     Err(e) => println!("Error {}", e),
-// }
