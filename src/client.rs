@@ -1,10 +1,42 @@
+use clap::{Args, Parser};
 use std::io::{BufRead, Write};
 use std::net::TcpStream;
 use std::str;
 
-pub fn start_session(session_id: String, server: String) {
+/// Track the time you spend on tasks!
+#[derive(Parser, Debug)]
+#[command(name = "time_tracker")]
+pub enum TimeTrackerCLI {
+    /// Start the time tracking server in the foreground
+    Server,
+    Start(StartParams),
+    Status(StatusParams),
+    /// Stop the current session
+    Stop,
+}
+
+/// Start a session
+#[derive(Args, Debug)]
+pub struct StartParams {
+    /// The name of the target session
+    pub session_name: String,
+}
+
+/// Display the statuses of sessions
+#[derive(Args, Debug)]
+// #[command(author, version)]
+pub struct StatusParams {
+    /// Display the status of all sessions
+    #[arg(long)]
+    all: bool,
+
+    /// The name of the target session
+    session_name: Option<String>,
+}
+
+pub fn start_session(server: String, session_name: String) {
     connect(server, |mut conn| {
-        let command = format!("START:{}\n", session_id);
+        let command = format!("START:{}\n", session_name);
         send_command(&mut conn, command);
         read_response(conn);
     })
@@ -17,7 +49,7 @@ pub fn stop_session(server: String) {
     })
 }
 
-pub fn status(server: String) {
+pub fn status(server: String, _params: StatusParams) {
     connect(server, |mut conn| {
         send_command(&mut conn, "STATUS\n".to_string());
         read_response(conn);

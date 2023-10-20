@@ -81,7 +81,7 @@ GIOS stats
 ### TODO
 - Add status for specific ID
 - Add status for all
-- Use Clap for CLI arg parsing
+- Computer restart with server running does not end the current session
 
 ### Deploy
 ```

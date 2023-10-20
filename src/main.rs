@@ -1,35 +1,24 @@
-use std::env;
+use clap::Parser;
+use client::TimeTrackerCLI;
 
 mod client;
 mod server;
 
 fn main() {
-    let args: Vec<String> = env::args().collect();
-    if args.len() < 2 {
-        return println!("Error: Specify a command");
-    }
-
     let server_location = "127.0.0.1:5888".to_string();
 
-    match args[1].as_str() {
-        "server" => {
+    match TimeTrackerCLI::parse() {
+        TimeTrackerCLI::Server => {
             server::start(server_location);
         }
-        "start" => {
-            if args.len() < 3 {
-                return println!("Error: Specify the ID of what you are tracking");
-            }
-            client::start_session(args[2].clone(), server_location);
+        TimeTrackerCLI::Start(params) => {
+            client::start_session(server_location, params.session_name);
         }
-        "stop" => {
+        TimeTrackerCLI::Stop => {
             client::stop_session(server_location);
         }
-        "status" => {
-            // if args.len() < 3 {
-            //     return println!("Error: Specify the session ID for more information");
-            // }
-            client::status(server_location);
+        TimeTrackerCLI::Status(params) => {
+            client::status(server_location, params);
         }
-        cmd => println!("Error: Unknown command '{}'", cmd),
     }
 }

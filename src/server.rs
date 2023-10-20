@@ -41,7 +41,6 @@ fn handle_stream(mut stream: TcpStream) {
 }
 
 fn execute_command(cmd: &str) -> Option<String> {
-    // TODO: track session history in memory and share between tasks
     match cmd.split(':').collect::<Vec<&str>>()[..] {
         ["START", session_id] => Session::start(session_id),
         ["STOP"] => Session::stop(),
