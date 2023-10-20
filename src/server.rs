@@ -7,7 +7,6 @@ use session::Session;
 
 pub fn start(location: String) {
     ctrlc::set_handler(move || {
-        println!();
         Session::stop();
         println!("Bye bye!");
         std::process::exit(0);
@@ -44,7 +43,7 @@ fn execute_command(cmd: &str) -> Option<String> {
     match cmd.split(':').collect::<Vec<&str>>()[..] {
         ["START", session_id] => Session::start(session_id),
         ["STOP"] => Session::stop(),
-        ["STATUS"] => Session::status(),
+        ["STATUS", option] => Session::status(option),
         _ => Some(format!("Unknown command {}", cmd)),
     }
 }

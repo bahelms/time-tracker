@@ -49,9 +49,17 @@ pub fn stop_session(server: String) {
     })
 }
 
-pub fn status(server: String, _params: StatusParams) {
+pub fn status(server: String, params: StatusParams) {
+    let option = if params.all {
+        "--all".to_string()
+    } else if let Some(name) = params.session_name {
+        name
+    } else {
+        String::new()
+    };
+
     connect(server, |mut conn| {
-        send_command(&mut conn, "STATUS\n".to_string());
+        send_command(&mut conn, format!("STATUS:{}\n", option));
         read_response(conn);
     })
 }
