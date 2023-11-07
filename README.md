@@ -79,8 +79,8 @@ GIOS stats
 ```
 
 ### TODO
-- Add status for specific ID
 - Add status for all
+- Handle error when attempting to start second server on same address
 - Computer restart with server running does not end the current session
 
 ### Deploy

@@ -1,4 +1,8 @@
-use chrono::{DateTime, Local, TimeZone, Utc};
+use chrono::{
+    naive::{Days, NaiveDate},
+    DateTime, Datelike, Local, TimeZone, Utc,
+};
+use std::collections::HashSet;
 use std::fs::{self, File, OpenOptions};
 use std::io::{BufRead, BufReader, Read, Write};
 use std::path::Path;
@@ -71,6 +75,8 @@ fn history_status() -> Option<String> {
 fn status_for_session(session_name: &str) -> Option<String> {
     let mut sessions_count = 0;
     let mut total_minutes = 0;
+    let mut weeks: HashSet<NaiveDate> = HashSet::new();
+    let mut total_seconds = 0;
 
     let file = File::open(history_file()).expect("Error opening history file");
     for line in BufReader::new(file).lines() {
@@ -78,15 +84,22 @@ fn status_for_session(session_name: &str) -> Option<String> {
         if session.name == session_name {
             sessions_count += 1;
             let duration = session.end - session.start;
+            total_seconds += duration.num_seconds();
             total_minutes += duration.num_minutes();
+
+            let date = session.start.date_naive();
+            let weekday = date.weekday();
+            let week_start = date - Days::new(weekday.num_days_from_monday() as u64);
+            weeks.insert(week_start);
         }
     }
 
     let hours = total_minutes / 60;
     let minutes = total_minutes.rem_euclid(60);
+    let weekly_avg = total_seconds as f64 / 60.0 / 60.0 / weeks.len() as f64;
     Some(format!(
         "{} stats\n\t- Number of sessions: {}\n\t- Weekly average: {:.2} hours\n\t- Total Duration: {} hours, {} minutes",
-        session_name, sessions_count, 0, hours, minutes
+        session_name, sessions_count, weekly_avg, hours, minutes
     ))
 }
 
@@ -104,7 +117,7 @@ fn current_session_status() -> Option<String> {
     let formatted_duration = format!(
         "{} hours, {} minutes",
         duration.num_hours(),
-        duration.num_minutes()
+        duration.num_minutes().rem_euclid(60)
     );
 
     Some(format!(
